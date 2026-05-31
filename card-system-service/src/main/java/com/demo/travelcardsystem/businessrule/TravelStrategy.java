@@ -1,5 +1,6 @@
 package com.demo.travelcardsystem.businessrule;
 
+import com.demo.travelcardsystem.config.FareConfig;
 import com.demo.travelcardsystem.constant.TransportType;
 import com.demo.travelcardsystem.constant.Zone;
 import com.demo.travelcardsystem.entity.ZonePair;
@@ -18,6 +19,9 @@ public class TravelStrategy {
 
     @NonNull
     private RuleCollection ruleCollection;
+
+    @NonNull
+    private FareConfig fareConfig;
 
     public Consumer<Double> anyWhereInZoneOneStrategy = chargeableAmount -> {
         Rule rule = new Rule();
@@ -86,14 +90,14 @@ public class TravelStrategy {
     };
 
     public RuleCollection loadAllBusinessRules() {
-        anyWhereInZoneOneStrategy.accept(2.50);
-        anyOneZoneOutsideZoneOneStrategy.accept(2.00);
-        anyTwoZoneIncludingZoneOneStrategy.accept(3.00);
-        anyTwoZoneExcludingZoneOneStrategy.accept(2.25);
-        anyThreeZoneStrategy.accept(3.20);
-        anyJourneyByBus.accept(1.80, TransportType.BUS);
+        anyWhereInZoneOneStrategy.accept(fareConfig.getZone1());
+        anyOneZoneOutsideZoneOneStrategy.accept(fareConfig.getOneZoneOutside());
+        anyTwoZoneIncludingZoneOneStrategy.accept(fareConfig.getTwoZonesIncludingZone1());
+        anyTwoZoneExcludingZoneOneStrategy.accept(fareConfig.getTwoZonesExcludingZone1());
+        anyThreeZoneStrategy.accept(fareConfig.getThreeZones());
+        anyJourneyByBus.accept(fareConfig.getBus(), TransportType.BUS);
 
-        this.ruleCollection.setMaxFare(3.20);
+        this.ruleCollection.setMaxFare(fareConfig.getMaximum());
 
         return this.ruleCollection;
     }
