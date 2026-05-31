@@ -12,9 +12,11 @@ import java.util.HashSet;
 import java.util.Set;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication(scanBasePackages = {"com.demo.travelcardsystem"})
+@EnableConfigurationProperties(FareConfig.class)
 public class TravelcardsystemApplication{
 
     public static void main(String[] args) {
