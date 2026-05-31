@@ -4,102 +4,60 @@ import com.demo.travelcardsystem.config.FareConfig;
 import com.demo.travelcardsystem.constant.TransportType;
 import com.demo.travelcardsystem.constant.Zone;
 import com.demo.travelcardsystem.entity.ZonePair;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
-@Data
 @Component
 @RequiredArgsConstructor
+@Getter
 public class TravelStrategy {
 
     @NonNull
-    private RuleCollection ruleCollection;
+    private final RuleCollection ruleCollection;
 
     @NonNull
-    private FareConfig fareConfig;
-
-    public Consumer<Double> anyWhereInZoneOneStrategy = chargeableAmount -> {
-        Rule rule = new Rule();
-        rule.setChargeableFare(chargeableAmount);
-
-        //Create all possible ZonePair for Zone 1
-        ZonePair zonePair = new ZonePair(Zone.ONE, Zone.ONE);
-        rule.addZonePair(zonePair);
-
-        ruleCollection.addRules(rule);
-
-    };
-
-    public Consumer<Double> anyOneZoneOutsideZoneOneStrategy = chargeableAmount -> {
-        Rule rule = new Rule();
-        rule.setChargeableFare(chargeableAmount);
-
-        //create all possible pair of any zone outside zone one.
-        rule.addZonePair(new ZonePair(Zone.TWO, Zone.TWO));
-        rule.addZonePair(new ZonePair(Zone.THREE, Zone.THREE));
-
-        ruleCollection.addRules(rule);
-    };
-
-    public Consumer<Double> anyTwoZoneIncludingZoneOneStrategy = chargeableAmount -> {
-        Rule rule = new Rule();
-        rule.setChargeableFare(chargeableAmount);
-
-        //create all possible pair of any zone outside zone one.
-        rule.addZonePair(new ZonePair(Zone.ONE, Zone.TWO));
-        rule.addZonePair(new ZonePair(Zone.TWO, Zone.ONE));
-        rule.addZonePair(new ZonePair(Zone.ONE, Zone.THREE));
-        rule.addZonePair(new ZonePair(Zone.THREE, Zone.ONE));
-
-        ruleCollection.addRules(rule);
-    };
-
-    public  Consumer<Double> anyTwoZoneExcludingZoneOneStrategy = chargeableAmount -> {
-        Rule rule = new Rule();
-        rule.setChargeableFare(chargeableAmount);
-
-        //create all possible pair of any two zone excluding zone one.
-        rule.addZonePair(new ZonePair(Zone.TWO, Zone.THREE));
-        rule.addZonePair(new ZonePair(Zone.THREE, Zone.TWO));
-
-        ruleCollection.addRules(rule);
-    };
-
-    public Consumer<Double> anyThreeZoneStrategy = chargeableAmount -> {
-        Rule rule = new Rule();
-        rule.setChargeableFare(chargeableAmount);
-
-
-
-        ruleCollection.addRules(rule);
-    };
-
-    public BiConsumer<Double, TransportType> anyJourneyByBus = (chargeableAmount, transType) -> {
-        Rule rule = new Rule();
-        rule.setChargeableFare(chargeableAmount);
-        rule.setTransportType(transType);
-
-        ruleCollection.addRules(rule);
-
-
-    };
+    private final FareConfig fareConfig;
 
     public RuleCollection loadAllBusinessRules() {
-        anyWhereInZoneOneStrategy.accept(fareConfig.getZone1());
-        anyOneZoneOutsideZoneOneStrategy.accept(fareConfig.getOneZoneOutside());
-        anyTwoZoneIncludingZoneOneStrategy.accept(fareConfig.getTwoZonesIncludingZone1());
-        anyTwoZoneExcludingZoneOneStrategy.accept(fareConfig.getTwoZonesExcludingZone1());
-        anyThreeZoneStrategy.accept(fareConfig.getThreeZones());
-        anyJourneyByBus.accept(fareConfig.getBus(), TransportType.BUS);
+        addZoneFareRule(fareConfig.getZone1(), new ZonePair(Zone.ONE, Zone.ONE));
 
-        this.ruleCollection.setMaxFare(fareConfig.getMaximum());
+        addZoneFareRule(fareConfig.getOneZoneOutside(),
+                new ZonePair(Zone.TWO, Zone.TWO),
+                new ZonePair(Zone.THREE, Zone.THREE));
 
-        return this.ruleCollection;
+        addZoneFareRule(fareConfig.getTwoZonesIncludingZone1(),
+                new ZonePair(Zone.ONE, Zone.TWO),
+                new ZonePair(Zone.TWO, Zone.ONE),
+                new ZonePair(Zone.ONE, Zone.THREE),
+                new ZonePair(Zone.THREE, Zone.ONE));
+
+        addZoneFareRule(fareConfig.getTwoZonesExcludingZone1(),
+                new ZonePair(Zone.TWO, Zone.THREE),
+                new ZonePair(Zone.THREE, Zone.TWO));
+
+        addZoneFareRule(fareConfig.getThreeZones());
+
+        addBusFareRule(fareConfig.getBus(), TransportType.BUS);
+
+        ruleCollection.setMaxFare(fareConfig.getMaximum());
+        return ruleCollection;
     }
 
+    private void addZoneFareRule(double fare, ZonePair... zonePairs) {
+        Rule rule = new Rule();
+        rule.setChargeableFare(fare);
+        for (ZonePair zonePair : zonePairs) {
+            rule.addZonePair(zonePair);
+        }
+        ruleCollection.addRules(rule);
+    }
+
+    private void addBusFareRule(double fare, TransportType transportType) {
+        Rule rule = new Rule();
+        rule.setChargeableFare(fare);
+        rule.setTransportType(transportType);
+        ruleCollection.addRules(rule);
+    }
 }

@@ -4,7 +4,6 @@ import com.demo.travelcardsystem.entity.Station;
 import com.demo.travelcardsystem.entity.TravelCard;
 import com.demo.travelcardsystem.exception.InvalidCardException;
 import com.demo.travelcardsystem.exception.InvalidDataProvidedException;
-import com.demo.travelcardsystem.exception.InvalidRechargeAmount;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ public class InMemoryCardTransactionRepository {
 
     public TravelCard registerNewCard(TravelCard travelCard) {
         // Check if card already exists. Then throw exception
-        if(null != travelCardStore.get(travelCard.getCardNumber())) {
+        if (travelCardStore.get(travelCard.getCardNumber()) != null) {
             throw new InvalidCardException("This card is already registered.");
         }
         travelCardStore.put(travelCard.getCardNumber(), travelCard);
